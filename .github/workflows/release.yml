@@ -1,0 +1,65 @@
+name: Release Module
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # Ensure we can push back without triggering an infinite loop
+          # Using default GITHUB_TOKEN
+          token: ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Check if commit is from bot
+        id: check-bot
+        run: |
+          if [[ "${{ github.event.head_commit.message }}" == *"Bump version"* ]]; then
+            echo "is_bot=true" >> $GITHUB_OUTPUT
+          else
+            echo "is_bot=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Bump minor version in module.json
+        if: steps.check-bot.outputs.is_bot == 'false'
+        id: bump
+        run: |
+          VERSION=$(jq -r '.version' module.json)
+          IFS='.' read -r -a VERSION_PARTS <<< "$VERSION"
+          MINOR=$((VERSION_PARTS[1] + 1))
+          NEW_VERSION="${VERSION_PARTS[0]}.${MINOR}.0"
+          
+          # Update module.json
+          jq --arg v "$NEW_VERSION" '.version = $v' module.json > tmp.json && mv tmp.json module.json
+          
+          echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+
+      - name: Commit and push version bump
+        if: steps.check-bot.outputs.is_bot == 'false'
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add module.json
+          git commit -m "Bump version to ${{ steps.bump.outputs.new_version }} [skip ci]"
+          git push
+
+      - name: Zip module files
+        if: steps.check-bot.outputs.is_bot == 'false'
+        run: |
+          zip -r module.zip module.json scripts styles templates languages
+          
+      - name: Create Release
+        if: steps.check-bot.outputs.is_bot == 'false'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ steps.bump.outputs.new_version }}
+          name: Release v${{ steps.bump.outputs.new_version }}
+          files: module.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

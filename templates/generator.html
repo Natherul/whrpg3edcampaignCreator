@@ -1,0 +1,42 @@
+<div class="campaign-creator">
+    <nav class="sheet-tabs tabs" data-group="primary">
+        <a class="item" data-tab="characters"><i class="fas fa-user"></i> {{localize "WHFRPG3E.Tabs.Characters"}}</a>
+        <a class="item" data-tab="items"><i class="fas fa-sword"></i> {{localize "WHFRPG3E.Tabs.Items"}}</a>
+        <a class="item" data-tab="story"><i class="fas fa-book"></i> {{localize "WHFRPG3E.Tabs.Story"}}</a>
+        <a class="item" data-tab="quests"><i class="fas fa-scroll"></i> {{localize "WHFRPG3E.Tabs.Quests"}}</a>
+    </nav>
+
+    <section class="content">
+        <div class="tab" data-tab="characters" data-group="primary">
+            <p>Describe the NPC or Character you want to generate.</p>
+            <div class="form-group">
+                <textarea class="prompt-input" rows="4" placeholder="A grim witch hunter from Nuln with a mechanical eye..."></textarea>
+            </div>
+            <button class="generate-btn" data-type="character"><i class="fas fa-magic"></i> {{localize "WHFRPG3E.Button.Generate"}}</button>
+        </div>
+
+        <div class="tab" data-tab="items" data-group="primary">
+            <p>Describe an item or artifact to create.</p>
+            <div class="form-group">
+                <textarea class="prompt-input" rows="4" placeholder="A rusty dwarven axe that glows faintly near greenskins..."></textarea>
+            </div>
+            <button class="generate-btn" data-type="item"><i class="fas fa-magic"></i> {{localize "WHFRPG3E.Button.Generate"}}</button>
+        </div>
+
+        <div class="tab" data-tab="story" data-group="primary">
+            <p>Generate a story beat, plot hook, or campaign event.</p>
+            <div class="form-group">
+                <textarea class="prompt-input" rows="4" placeholder="The players arrive at a tavern where everyone is terrified of the basement..."></textarea>
+            </div>
+            <button class="generate-btn" data-type="story"><i class="fas fa-magic"></i> {{localize "WHFRPG3E.Button.Generate"}}</button>
+        </div>
+
+        <div class="tab" data-tab="quests" data-group="primary">
+            <p>Generate a shared quest with objectives and flavor text.</p>
+            <div class="form-group">
+                <textarea class="prompt-input" rows="4" placeholder="The Burgomeister wants the party to clear out the sewers..."></textarea>
+            </div>
+            <button class="generate-btn" data-type="quest"><i class="fas fa-magic"></i> {{localize "WHFRPG3E.Button.Generate"}}</button>
+        </div>
+    </section>
+</div>

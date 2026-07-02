@@ -1,0 +1,38 @@
+{
+  "id": "whfrpg3dcampaigncreator",
+  "title": "WFRP 3e Campaign Creator",
+  "description": "AI-powered campaign creator and quest tracker for WFRP 3e using Gemini.",
+  "version": "1.0.0",
+  "library": false,
+  "compatibility": {
+    "minimum": "11",
+    "verified": "11"
+  },
+  "authors": [
+    {
+      "name": "natherul"
+    }
+  ],
+  "relationships": {
+    "systems": [
+      {
+        "id": "wfrp3e",
+        "type": "system",
+        "compatibility": {}
+      }
+    ]
+  },
+  "esmodules": [
+    "scripts/main.js"
+  ],
+  "styles": [
+    "styles/main.css"
+  ],
+  "languages": [
+    {
+      "lang": "en",
+      "name": "English",
+      "path": "languages/en.json"
+    }
+  ]
+}

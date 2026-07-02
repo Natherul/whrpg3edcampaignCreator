@@ -1,0 +1,32 @@
+.campaign-creator {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.campaign-creator .tabs {
+    flex: 0 0 30px;
+    border-bottom: 1px solid #000;
+    margin-bottom: 10px;
+}
+
+.campaign-creator .content {
+    flex: 1;
+    overflow-y: auto;
+}
+
+.campaign-creator .tab {
+    padding: 5px;
+}
+
+.campaign-creator textarea.prompt-input {
+    width: 100%;
+    resize: vertical;
+    margin-bottom: 10px;
+    font-family: inherit;
+}
+
+.campaign-creator button.generate-btn {
+    width: 100%;
+    margin-top: 5px;
+}

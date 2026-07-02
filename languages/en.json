@@ -1,0 +1,12 @@
+{
+  "WHFRPG3E.Settings.GeminiAPIKey.Name": "Gemini API Key",
+  "WHFRPG3E.Settings.GeminiAPIKey.Hint": "Your Google Gemini API Key. Get one at Google AI Studio.",
+  "WHFRPG3E.Settings.GeminiModel.Name": "Gemini Model",
+  "WHFRPG3E.Settings.GeminiModel.Hint": "The Gemini model to use (e.g. gemini-1.5-pro-latest or gemini-2.5-pro).",
+  "WHFRPG3E.App.Title": "WFRP 3e Campaign Creator",
+  "WHFRPG3E.Button.Generate": "Generate",
+  "WHFRPG3E.Tabs.Characters": "Characters",
+  "WHFRPG3E.Tabs.Items": "Items",
+  "WHFRPG3E.Tabs.Story": "Story Beats",
+  "WHFRPG3E.Tabs.Quests": "Quests"
+}
