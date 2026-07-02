@@ -35,8 +35,16 @@ jobs:
           MINOR=$((VERSION_PARTS[1] + 1))
           NEW_VERSION="${VERSION_PARTS[0]}.${MINOR}.0"
           
+          # Setup URLs
+          REPO="${{ github.repository }}"
+          MANIFEST_URL="https://raw.githubusercontent.com/$REPO/main/module.json"
+          DOWNLOAD_URL="https://github.com/$REPO/releases/download/v$NEW_VERSION/module.zip"
+          
           # Update module.json
-          jq --arg v "$NEW_VERSION" '.version = $v' module.json > tmp.json && mv tmp.json module.json
+          jq --arg v "$NEW_VERSION" \
+             --arg m "$MANIFEST_URL" \
+             --arg d "$DOWNLOAD_URL" \
+             '.version = $v | .manifest = $m | .download = $d' module.json > tmp.json && mv tmp.json module.json
           
           echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
 
@@ -60,6 +68,8 @@ jobs:
         with:
           tag_name: v${{ steps.bump.outputs.new_version }}
           name: Release v${{ steps.bump.outputs.new_version }}
-          files: module.zip
+          files: |
+            module.zip
+            module.json
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
