@@ -24,8 +24,8 @@ Hooks.once("init", () => {
 });
 
 Hooks.on("getSceneControlButtons", (controls) => {
-    const isGM = game.user.isGM;
-    if (!isGM) return;
+    // game.user might not be initialized yet when this hook first fires
+    if (game.user && !game.user.isGM) return;
 
     const tokenControls = controls.find(c => c.name === "token");
     if (tokenControls) {
@@ -34,6 +34,7 @@ Hooks.on("getSceneControlButtons", (controls) => {
             title: "WHFRPG3E.App.Title",
             icon: "fas fa-magic",
             button: true,
+            visible: true,
             onClick: () => {
                 new CampaignCreatorApp().render(true);
             }
