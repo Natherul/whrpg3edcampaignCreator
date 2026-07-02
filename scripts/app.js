@@ -45,21 +45,54 @@ export class CampaignCreatorApp extends Application {
     }
 
     async _generateCharacter(prompt) {
-        const instruction = `You are a WFRP 3e assistant. Create a character based on the prompt. Output JSON with the following structure:
+        const instruction = `You are a WFRP 3e assistant. Create an NPC or Creature based on the prompt. Output JSON with the exact WFRP3e data model structure:
 {
-  "name": "Character Name",
-  "type": "character",
+  "name": "Creature Name",
+  "type": "creature",
   "system": {
     "characteristics": {
-      "strength": { "value": 3 },
-      "toughness": { "value": 3 },
-      "agility": { "value": 3 },
-      "intelligence": { "value": 3 },
-      "willpower": { "value": 3 },
-      "fellowship": { "value": 3 }
+      "strength": { "rating": 3, "fortune": 0 },
+      "toughness": { "rating": 3, "fortune": 0 },
+      "agility": { "rating": 3, "fortune": 0 },
+      "intelligence": { "rating": 3, "fortune": 0 },
+      "willpower": { "rating": 3, "fortune": 0 },
+      "fellowship": { "rating": 3, "fortune": 0 }
     },
-    "biography": "Flavorful background"
-  }
+    "attributes": {
+      "aggression": { "max": 1, "value": 1 },
+      "cunning": { "max": 0, "value": 0 },
+      "expertise": { "max": 1, "value": 1 }
+    },
+    "wounds": { "max": 12, "value": 12 },
+    "damageRating": 4,
+    "threatRating": 2,
+    "defenceValue": 1,
+    "soakValue": 1,
+    "description": "Flavorful background HTML"
+  },
+  "items": [
+    {
+      "name": "Savage Strike",
+      "type": "action",
+      "system": {
+        "type": "melee",
+        "conservative": {
+          "name": "Savage Strike",
+          "rechargeRating": 0,
+          "difficultyModifiers": { "challengeDice": 1, "misfortuneDice": 0 },
+          "check": "Strength vs Defense",
+          "effects": {}
+        },
+        "reckless": {
+          "name": "Savage Strike",
+          "rechargeRating": 0,
+          "difficultyModifiers": { "challengeDice": 1, "misfortuneDice": 0 },
+          "check": "Strength vs Defense",
+          "effects": {}
+        }
+      }
+    }
+  ]
 }`;
         const data = await generateJSONWithGemini(prompt, instruction);
         if (data) {
@@ -70,17 +103,23 @@ export class CampaignCreatorApp extends Application {
     }
 
     async _generateItem(prompt) {
-        const instruction = `You are a WFRP 3e assistant. Create an item based on the prompt. Output JSON with structure:
-{
-  "name": "Item Name",
-  "type": "item",
-  "system": {
-    "description": "Flavorful item description and stats."
-  }
-}`;
+        const instruction = `You are a WFRP 3e assistant. Create an item based on the prompt. Decide if it is a "weapon", "armour", or generic "trapping" (like potions/tools).
+Output exactly one JSON object using the exact WFRP3e data model structure for the chosen type:
+
+For weapons:
+{ "name": "Sword", "type": "weapon", "system": { "description": "Desc", "encumbrance": 1, "rarity": "common", "cost": {"gold": 0, "silver": 1, "brass": 0}, "criticalRating": 4, "damageRating": 5, "equipped": "unequipped", "group": "ordinary", "range": "close", "qualities": [ { "name": "pierce", "rating": 1 } ] } }
+
+For armour (types: armour, shield):
+{ "name": "Leather Armor", "type": "armour", "system": { "description": "Desc", "encumbrance": 2, "rarity": "common", "cost": {"gold": 0, "silver": 2, "brass": 0}, "defenceValue": 1, "soakValue": 1, "equipped": false, "type": "armour" } }
+
+For other items (potions, tools, etc.):
+{ "name": "Healing Potion", "type": "trapping", "system": { "description": "Desc", "encumbrance": 0, "rarity": "common", "cost": {"gold": 0, "silver": 0, "brass": 5} } }
+
+Note: valid weapon groups include blackpowder, bow, cavalry, crossbow, fencing, flail, greatWeapon, ordinary, polearm, sling, spear, staff, thrown, unarmed.
+Valid weapon qualities include attuned, blast, defensive, entangling, fast, pierce, reload, slow, thrown, twoHanded, unreliable, vicious.
+Valid rarities: abundant, plentiful, common, rare, exotic.`;
         const data = await generateJSONWithGemini(prompt, instruction);
         if (data) {
-            if(data.type === "item") data.type = "trapping";
             const item = await Item.create(data);
             ui.notifications.info(`Created item: ${item.name}`);
             item.sheet.render(true);
