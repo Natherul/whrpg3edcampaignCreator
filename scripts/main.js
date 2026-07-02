@@ -27,18 +27,33 @@ Hooks.on("getSceneControlButtons", (controls) => {
     // game.user might not be initialized yet when this hook first fires
     if (game.user && !game.user.isGM) return;
 
-    const tokenControls = controls.find(c => c.name === "token");
-    if (tokenControls) {
-        tokenControls.tools.push({
-            name: "campaign-creator",
-            title: "WHFRPG3E.App.Title",
-            icon: "fas fa-magic",
-            button: true,
-            visible: true,
-            onClick: () => {
-                new CampaignCreatorApp().render(true);
+    const tool = {
+        name: "campaign-creator",
+        title: "WHFRPG3E.App.Title",
+        icon: "fas fa-magic",
+        button: true,
+        visible: true,
+        onClick: () => {
+            new CampaignCreatorApp().render(true);
+        }
+    };
+
+    if (Array.isArray(controls)) {
+        // Foundry V13 and older
+        const tokenControls = controls.find(c => c.name === "token");
+        if (tokenControls) {
+            tokenControls.tools.push(tool);
+        }
+    } else {
+        // Foundry V14+
+        const tokenControls = controls.token || controls.tokens;
+        if (tokenControls && tokenControls.tools) {
+            if (Array.isArray(tokenControls.tools)) {
+                tokenControls.tools.push(tool);
+            } else {
+                tokenControls.tools["campaign-creator"] = tool;
             }
-        });
+        }
     }
 });
 
