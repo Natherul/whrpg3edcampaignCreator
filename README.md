@@ -17,7 +17,7 @@ This module provides an AI-powered campaign creator directly inside Foundry VTT,
 1. In Foundry VTT, go to the **Add-on Modules** tab in the Setup menu.
 2. Click **Install Module**.
 3. In the Manifest URL field, paste the link to the `module.json` from the latest release:
-   `https://raw.githubusercontent.com/Natherul/whfrpg3dcampaignCreator/main/module.json`
+   `https://raw.githubusercontent.com/Natherul/whrpg3edcampaignCreator/refs/heads/master/module.json`
 4. Click **Install**.
 
 ### Manual Installation
