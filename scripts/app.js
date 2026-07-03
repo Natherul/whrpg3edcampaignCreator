@@ -148,6 +148,7 @@ export class CampaignCreatorApp extends Application {
 
     async _generateCharacter(prompt) {
         const instruction = `You are a WFRP 3e assistant. Create an NPC or Creature based on the prompt. Output JSON with the exact WFRP3e data model structure.
+CRITICAL: The ONLY valid values for Actor 'type' are "creature" or "character". Do NOT use "npc".
 CRITICAL: You MUST include at least one action in the 'items' array. Fill the 'effects' object for actions using exactly these keys: success, righteousSuccess, boon, sigmarsComet, challenge, bane, chaosStar, delay, exertion. Each key should be an array of effect objects.
 For effect descriptions, use mechanical terminology suitable for WFRP3e: e.g. "Deal 1 extra damage", "Recover 1 fatigue or stress", "Target suffers 1 critical wound", "Perform a free maneuver", "Gain 1 fortune", "Add 1 misfortune die to the target's next check", "Ignore 1 soak", etc. Do NOT invent generic DnD-style spells or mechanics.
 
