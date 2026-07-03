@@ -19,7 +19,7 @@ Hooks.once("init", () => {
         scope: "world",
         config: true,
         type: String,
-        default: "gemini-1.5-pro-latest"
+        default: "gemini-2.5-flash"
     });
 });
 

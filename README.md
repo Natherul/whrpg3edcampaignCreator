@@ -33,7 +33,7 @@ This module provides an AI-powered campaign creator directly inside Foundry VTT,
    - Go to **Game Settings** -> **Configure Settings** -> **Module Settings**.
    - Locate the **Gemini API Key** setting.
    - Paste your Google Gemini API Key here. (You can get one for free at [Google AI Studio](https://aistudio.google.com/)).
-   - Set the **Gemini Model** (default is `gemini-1.5-pro-latest`, but you can also use `gemini-1.5-flash` for faster generation).
+   - Set the **Gemini Model** (default is `gemini-2.5-flash`, which is fast and completely free).
 3. **Open the Generator:**
    - As a GM, look at your Token Controls toolbar on the left side of the screen.
    - Click the magic wand icon (`WFRP 3e Campaign Creator`).

@@ -44,6 +44,35 @@ export class CampaignCreatorApp extends Application {
         }
     }
 
+    _getRelevantJournalContext(prompt) {
+        const stopWords = new Set(["this", "that", "with", "from", "your", "what", "have", "they", "will", "would", "could", "should", "their", "them", "then", "than", "there", "these", "those", "were", "been", "much", "many", "some", "very", "upon", "into", "about", "like", "just", "only", "also"]);
+        
+        const promptWords = (prompt.toLowerCase().match(/\b[a-z]{4,}\b/g) || [])
+            .filter(w => !stopWords.has(w));
+
+        let context = "";
+
+        for (let journal of game.journal) {
+            for (let page of journal.pages) {
+                if (page.type === "text" && page.text.content) {
+                    const contentStr = page.text.content.toLowerCase();
+                    
+                    const isRelevant = promptWords.length === 0 || promptWords.some(word => contentStr.includes(word));
+                    
+                    if (isRelevant) {
+                        const cleanText = page.text.content.replace(/<[^>]*>?/gm, ' ').replace(/\s+/g, ' ').trim();
+                        context += `\n--- Source: ${journal.name} (${page.name}) ---\n${cleanText}\n`;
+                    }
+                }
+            }
+        }
+        
+        if (context) {
+            return `\n\n=== RELEVANT CAMPAIGN LORE ===\nUse the following excerpts from the GM's campaign journals to seamlessly weave the generated content into the existing world. Ensure names, locations, relationships, and events align with this lore:\n${context}\n==============================\n`;
+        }
+        return "";
+    }
+
     async _generateCharacter(prompt) {
         const instruction = `You are a WFRP 3e assistant. Create an NPC or Creature based on the prompt. Output JSON with the exact WFRP3e data model structure:
 {
@@ -94,7 +123,8 @@ export class CampaignCreatorApp extends Application {
     }
   ]
 }`;
-        const data = await generateJSONWithGemini(prompt, instruction);
+        const lore = this._getRelevantJournalContext(prompt);
+        const data = await generateJSONWithGemini(prompt + lore, instruction);
         if (data) {
             const actor = await Actor.create(data);
             ui.notifications.info(`Created character: ${actor.name}`);
@@ -155,7 +185,8 @@ Valid rarities: abundant, plentiful, common, rare, exotic.`;
     "Objective 2"
   ]
 }`;
-        const data = await generateJSONWithGemini(prompt, instruction);
+        const lore = this._getRelevantJournalContext(prompt);
+        const data = await generateJSONWithGemini(prompt + lore, instruction);
         if (data) {
             const folder = await this._getOrCreateFolder("Quests");
             
