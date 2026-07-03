@@ -48,31 +48,26 @@ async function openAIModifyDialog(actor) {
 }
 
 // 1. Add to the V2 Actor Sheets "Toggle Controls" menu (the 3 vertical dots)
-const sheetClasses = ["ActorSheet", "CharacterSheet", "CreatureSheet", "GroupSheet", "PartySheet"];
-for (const cls of sheetClasses) {
-    Hooks.on(`getHeaderControls${cls}`, (app, controls) => {
-        if (game.user && !game.user.isGM) return;
-        controls.unshift({
-            action: "aiModify",
-            icon: "fa-solid fa-magic",
-            label: "AI Modify"
-        });
-    });
+Hooks.on("getHeaderControlsApplicationV2", (app, buttons) => {
+    // Ensure we are only adding this to actor sheets
+    if (!app.document || !(app.document instanceof Actor)) return;
     
-    Hooks.on(`render${cls}`, (app, html) => {
-        const windowFrame = app.element || (html.length ? html[0] : html);
-        if (!windowFrame) return;
-        const btn = windowFrame.querySelector('[data-action="aiModify"]');
-        if (btn && !btn.dataset.aiBound) {
-            btn.dataset.aiBound = "true";
-            btn.addEventListener("click", (e) => {
-                e.preventDefault();
-                const actor = app.document || app.actor;
-                if (actor) openAIModifyDialog(actor);
-            });
-        }
+    // Only GMs should see this
+    if (game.user && !game.user.isGM) return;
+
+    // Register the action handler dynamically for this specific app instance
+    app.options.actions["aiModify"] = function() {
+        const actor = this.document || this.actor;
+        if (actor) openAIModifyDialog(actor);
+    };
+
+    // Add the button
+    buttons.unshift({
+        action: "aiModify",
+        icon: "fa-solid fa-magic",
+        label: "AI Modify"
     });
-}
+});
 
 // 2. Fallback for V1 Sheets just in case any mods use them
 Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
