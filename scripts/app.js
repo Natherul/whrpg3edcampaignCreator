@@ -11,6 +11,7 @@ Return the complete, modified JSON object representing the Actor.
 Make sure to output valid WFRP3e data model structure.
 
 If the prompt asks you to add an action or the NPC has no actions and should have some, you MUST include items in the 'items' array formatted as WFRP3e actions.
+CRITICAL: For action items, the ONLY valid values for \`system.type\` are: "melee", "ranged", "support", "blessing", or "spell".
 Fill the 'effects' object for actions using exactly these keys: success, righteousSuccess, boon, sigmarsComet, challenge, bane, chaosStar, delay, exertion. Each key should be an array of effect objects.
 For effect descriptions, use mechanical terminology suitable for WFRP3e: e.g. "Deal 1 extra damage", "Recover 1 fatigue or stress", "Target suffers 1 critical wound", "Perform a free maneuver", "Gain 1 fortune", "Add 1 misfortune die to the target's next check", "Ignore 1 soak", etc.
 
@@ -149,7 +150,8 @@ export class CampaignCreatorApp extends Application {
     async _generateCharacter(prompt) {
         const instruction = `You are a WFRP 3e assistant. Create an NPC or Creature based on the prompt. Output JSON with the exact WFRP3e data model structure.
 CRITICAL: The ONLY valid value for Actor 'type' is "creature". Do NOT use "npc" or "character".
-CRITICAL: You MUST include at least one action in the 'items' array. Fill the 'effects' object for actions using exactly these keys: success, righteousSuccess, boon, sigmarsComet, challenge, bane, chaosStar, delay, exertion. Each key should be an array of effect objects.
+CRITICAL: You MUST include at least one action in the 'items' array. For action items, the ONLY valid values for \`system.type\` are: "melee", "ranged", "support", "blessing", or "spell".
+Fill the 'effects' object for actions using exactly these keys: success, righteousSuccess, boon, sigmarsComet, challenge, bane, chaosStar, delay, exertion. Each key should be an array of effect objects.
 For effect descriptions, use mechanical terminology suitable for WFRP3e: e.g. "Deal 1 extra damage", "Recover 1 fatigue or stress", "Target suffers 1 critical wound", "Perform a free maneuver", "Gain 1 fortune", "Add 1 misfortune die to the target's next check", "Ignore 1 soak", etc. Do NOT invent generic DnD-style spells or mechanics.
 
 Example Structure:
