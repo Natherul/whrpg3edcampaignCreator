@@ -124,14 +124,20 @@ Hooks.on("getSceneControlButtons", (controls) => {
     };
 
     if (Array.isArray(controls)) {
+        // Foundry V13 and older
         const tokenControls = controls.find(c => c.name === "token");
         if (tokenControls && tokenControls.tools) {
             tokenControls.tools.push(generatorTool);
         }
     } else {
-        // V14 compatibility: object-keyed structure
-        if (controls.token && controls.token.tools) {
-            controls.token.tools["campaign-creator"] = generatorTool;
+        // Foundry V14+
+        const tokenControls = controls.token || controls.tokens;
+        if (tokenControls && tokenControls.tools) {
+            if (Array.isArray(tokenControls.tools)) {
+                tokenControls.tools.push(generatorTool);
+            } else {
+                tokenControls.tools["campaign-creator"] = generatorTool;
+            }
         }
     }
 });

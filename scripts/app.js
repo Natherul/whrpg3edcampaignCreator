@@ -10,6 +10,38 @@ export async function fixActorWithAI(actor, prompt) {
 Return the complete, modified JSON object representing the Actor.
 Make sure to output valid WFRP3e data model structure.
 
+If the prompt asks you to add an action or the NPC has no actions and should have some, you MUST include items in the 'items' array formatted as WFRP3e actions.
+Fill the 'effects' object for actions using exactly these keys: success, righteousSuccess, boon, sigmarsComet, challenge, bane, chaosStar, delay, exertion. Each key should be an array of effect objects.
+For effect descriptions, use mechanical terminology suitable for WFRP3e: e.g. "Deal 1 extra damage", "Recover 1 fatigue or stress", "Target suffers 1 critical wound", "Perform a free maneuver", "Gain 1 fortune", "Add 1 misfortune die to the target's next check", "Ignore 1 soak", etc.
+
+Example Action Item Structure:
+{
+  "name": "Savage Strike",
+  "type": "action",
+  "system": {
+    "type": "melee",
+    "conservative": {
+      "name": "Savage Strike",
+      "rechargeRating": 0,
+      "difficultyModifiers": { "challengeDice": 1, "misfortuneDice": 0 },
+      "check": "Strength vs Defense",
+      "effects": {
+        "success": [{ "description": "Deal 1 extra damage", "symbolAmount": 1 }]
+      }
+    },
+    "reckless": {
+      "name": "Savage Strike",
+      "rechargeRating": 0,
+      "difficultyModifiers": { "challengeDice": 1, "misfortuneDice": 0 },
+      "check": "Strength vs Defense",
+      "effects": {
+        "boon": [{ "description": "Recover 1 fatigue", "symbolAmount": 1 }],
+        "sigmarsComet": [{ "description": "Target suffers 1 critical wound", "symbolAmount": 1 }]
+      }
+    }
+  }
+}
+
 Existing Actor JSON:
 ${JSON.stringify(actorData)}
 
