@@ -86,9 +86,9 @@ Hooks.on("getSceneControlButtons", (controls) => {
     // game.user might not be initialized yet when this hook first fires
     if (game.user && !game.user.isGM) return;
 
-    const tool = {
+    const generatorTool = {
         name: "campaign-creator",
-        title: "WHFRPG3E.App.Title",
+        title: "Generate New Character (AI)",
         icon: "fas fa-magic",
         button: true,
         visible: true,
@@ -98,20 +98,14 @@ Hooks.on("getSceneControlButtons", (controls) => {
     };
 
     if (Array.isArray(controls)) {
-        // Foundry V13 and older
         const tokenControls = controls.find(c => c.name === "token");
-        if (tokenControls) {
-            tokenControls.tools.push(tool);
+        if (tokenControls && tokenControls.tools) {
+            tokenControls.tools.push(generatorTool);
         }
     } else {
-        // Foundry V14+
-        const tokenControls = controls.token || controls.tokens;
-        if (tokenControls && tokenControls.tools) {
-            if (Array.isArray(tokenControls.tools)) {
-                tokenControls.tools.push(tool);
-            } else {
-                tokenControls.tools["campaign-creator"] = tool;
-            }
+        // V14 compatibility: object-keyed structure
+        if (controls.token && controls.token.tools) {
+            controls.token.tools["campaign-creator"] = generatorTool;
         }
     }
 });
