@@ -23,6 +23,45 @@ Hooks.once("init", () => {
     });
 });
 
+Hooks.on("getActorSheetHeaderButtons", (sheet, buttons) => {
+    if (game.user && !game.user.isGM) return;
+
+    buttons.unshift({
+        label: "AI Modify",
+        icon: "fas fa-magic",
+        class: "campaign-creator-fix",
+        onclick: () => {
+            const actor = sheet.actor;
+            const d = new Dialog({
+                title: "AI Modify: " + actor.name,
+                content: `
+                    <p>Describe how you want to modify this character. For example: <i>'Level them up to be a boss', 'Add a poisoned dagger action', 'Make them a spellcaster'</i>.</p>
+                    <div class="form-group">
+                        <textarea id="ai-fix-prompt" rows="4" style="width: 100%;"></textarea>
+                    </div>
+                `,
+                buttons: {
+                    generate: {
+                        icon: '<i class="fas fa-magic"></i>',
+                        label: "Modify",
+                        callback: async (html) => {
+                            const prompt = html.find("#ai-fix-prompt").val();
+                            if (prompt) {
+                                // Import dynamically to avoid circular dependencies if needed,
+                                // or assume it's available. It's safer to just import it here.
+                                const { fixActorWithAI } = await import("./app.js");
+                                await fixActorWithAI(actor, prompt);
+                            }
+                        }
+                    }
+                },
+                default: "generate"
+            });
+            d.render(true);
+        }
+    });
+});
+
 Hooks.on("getSceneControlButtons", (controls) => {
     // game.user might not be initialized yet when this hook first fires
     if (game.user && !game.user.isGM) return;

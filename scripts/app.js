@@ -1,5 +1,43 @@
 import { generateJSONWithGemini, callGemini } from "./api.js";
 
+export async function fixActorWithAI(actor, prompt) {
+    ui.notifications.info(`AI modifying ${actor.name}... please wait.`);
+    
+    // Create a simplified clone for the prompt to save tokens and confusion
+    const actorData = actor.toObject();
+    
+    const instruction = `You are a WFRP 3e assistant. You are given the JSON representation of an existing Actor, and a prompt describing how to modify it.
+Return the complete, modified JSON object representing the Actor.
+Make sure to output valid WFRP3e data model structure.
+
+Existing Actor JSON:
+${JSON.stringify(actorData)}
+
+Requested Modification:
+${prompt}`;
+
+    // Note: use generateJSONWithGemini with the context builder attached if desired, 
+    // but the full prompt is passed into generateJSONWithGemini.
+    const data = await generateJSONWithGemini(prompt, instruction);
+    if (data) {
+        const newItems = data.items;
+        delete data.items;
+        
+        await actor.update(data);
+        
+        if (newItems && Array.isArray(newItems)) {
+            const existingIds = actor.items.map(i => i.id);
+            if (existingIds.length > 0) {
+                await actor.deleteEmbeddedDocuments("Item", existingIds);
+            }
+            await actor.createEmbeddedDocuments("Item", newItems);
+        }
+        ui.notifications.info(`${actor.name} successfully modified!`);
+    } else {
+        ui.notifications.error(`Failed to modify ${actor.name}.`);
+    }
+}
+
 export class CampaignCreatorApp extends Application {
     static get defaultOptions() {
         return foundry.utils.mergeObject(super.defaultOptions, {
@@ -74,7 +112,10 @@ export class CampaignCreatorApp extends Application {
     }
 
     async _generateCharacter(prompt) {
-        const instruction = `You are a WFRP 3e assistant. Create an NPC or Creature based on the prompt. Output JSON with the exact WFRP3e data model structure:
+        const instruction = `You are a WFRP 3e assistant. Create an NPC or Creature based on the prompt. Output JSON with the exact WFRP3e data model structure.
+CRITICAL: You MUST include at least one action in the 'items' array. Fill the 'effects' object for actions using exactly these keys: success, righteousSuccess, boon, sigmarsComet, challenge, bane, chaosStar, delay, exertion. Each key should be an array of effect objects.
+
+Example Structure:
 {
   "name": "Creature Name",
   "type": "creature",
@@ -110,14 +151,19 @@ export class CampaignCreatorApp extends Application {
           "rechargeRating": 0,
           "difficultyModifiers": { "challengeDice": 1, "misfortuneDice": 0 },
           "check": "Strength vs Defense",
-          "effects": {}
+          "effects": {
+            "success": [{ "description": "Deal 1 extra damage", "symbolAmount": 1 }]
+          }
         },
         "reckless": {
           "name": "Savage Strike",
           "rechargeRating": 0,
           "difficultyModifiers": { "challengeDice": 1, "misfortuneDice": 0 },
           "check": "Strength vs Defense",
-          "effects": {}
+          "effects": {
+            "boon": [{ "description": "Recover 1 fatigue", "symbolAmount": 1 }],
+            "sigmarsComet": [{ "description": "Critical Hit!", "symbolAmount": 1 }]
+          }
         }
       }
     }
@@ -126,7 +172,15 @@ export class CampaignCreatorApp extends Application {
         const lore = this._getRelevantJournalContext(prompt);
         const data = await generateJSONWithGemini(prompt + lore, instruction);
         if (data) {
+            const items = data.items;
+            delete data.items;
+            
             const actor = await Actor.create(data);
+            
+            if (items && items.length > 0) {
+                await actor.createEmbeddedDocuments("Item", items);
+            }
+            
             ui.notifications.info(`Created character: ${actor.name}`);
             actor.sheet.render(true);
         }
