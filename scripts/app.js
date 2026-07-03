@@ -60,7 +60,16 @@ ${prompt}`;
         
         if (newItems && Array.isArray(newItems)) {
             // Remove _id to prevent validation errors on creation
-            newItems.forEach(i => delete i._id);
+            newItems.forEach(i => {
+                delete i._id;
+                // Force action system type to be valid
+                if (i.type === "action" && i.system) {
+                    const validTypes = ["melee", "ranged", "support", "blessing", "spell"];
+                    if (!validTypes.includes(i.system.type)) {
+                        i.system.type = "support";
+                    }
+                }
+            });
 
             const existingIds = actor.items.map(i => i.id);
             if (existingIds.length > 0) {
@@ -218,7 +227,16 @@ Example Structure:
             
             if (items && items.length > 0) {
                 // Remove _id to prevent validation errors on creation
-                items.forEach(i => delete i._id);
+                items.forEach(i => {
+                    delete i._id;
+                    // Force action system type to be valid
+                    if (i.type === "action" && i.system) {
+                        const validTypes = ["melee", "ranged", "support", "blessing", "spell"];
+                        if (!validTypes.includes(i.system.type)) {
+                            i.system.type = "support";
+                        }
+                    }
+                });
                 await actor.createEmbeddedDocuments("Item", items);
             }
             
