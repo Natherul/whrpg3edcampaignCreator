@@ -20,6 +20,9 @@ Hooks.once("init", () => {
         config: true,
         type: String,
         default: "gemini-2.5-flash"
+    });
+});
+
 async function openAIModifyDialog(actor) {
     const d = new Dialog({
         title: "AI Modify: " + actor.name,
