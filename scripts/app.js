@@ -7,12 +7,10 @@ export async function fixActorWithAI(actor, prompt) {
     const actorData = actor.toObject();
     
     const instruction = `You are a WFRP 3e assistant. You are given the JSON representation of an existing Actor, and a prompt describing how to modify it.
-Return the complete, modified JSON object representing the Actor.
-Make sure to output valid WFRP3e data model structure.
-
 If the prompt asks you to add an action or the NPC has no actions and should have some, you MUST include items in the 'items' array formatted as WFRP3e actions.
 CRITICAL: For action items, the ONLY valid values for \`system.type\` are: "melee", "ranged", "support", "blessing", or "spell".
 Fill the 'effects' object for actions using exactly these keys: success, righteousSuccess, boon, sigmarsComet, challenge, bane, chaosStar, delay, exertion. Each key should be an array of effect objects.
+CRITICAL: Do NOT overuse "righteousSuccess" or "sigmarsComet" in effects. NPCs should primarily rely on standard "success", "boon", "bane", and "chaosStar" effects. Specialization successes are very rare.
 For effect descriptions, use mechanical terminology suitable for WFRP3e: e.g. "Deal 1 extra damage", "Recover 1 fatigue or stress", "Target suffers 1 critical wound", "Perform a free maneuver", "Gain 1 fortune", "Add 1 misfortune die to the target's next check", "Ignore 1 soak", etc.
 
 Example Action Item Structure:
@@ -161,6 +159,7 @@ export class CampaignCreatorApp extends Application {
 CRITICAL: The ONLY valid value for Actor 'type' is "creature". Do NOT use "npc" or "character".
 CRITICAL: You MUST include at least one action in the 'items' array. For action items, the ONLY valid values for \`system.type\` are: "melee", "ranged", "support", "blessing", or "spell".
 Fill the 'effects' object for actions using exactly these keys: success, righteousSuccess, boon, sigmarsComet, challenge, bane, chaosStar, delay, exertion. Each key should be an array of effect objects.
+CRITICAL: Do NOT overuse "righteousSuccess" or "sigmarsComet" in effects. NPCs should primarily rely on standard "success", "boon", "bane", and "chaosStar" effects. Specialization successes are very rare.
 For effect descriptions, use mechanical terminology suitable for WFRP3e: e.g. "Deal 1 extra damage", "Recover 1 fatigue or stress", "Target suffers 1 critical wound", "Perform a free maneuver", "Gain 1 fortune", "Add 1 misfortune die to the target's next check", "Ignore 1 soak", etc. Do NOT invent generic DnD-style spells or mechanics.
 
 Example Structure:
@@ -263,6 +262,21 @@ Valid weapon qualities include attuned, blast, defensive, entangling, fast, pier
 Valid rarities: abundant, plentiful, common, rare, exotic.`;
         const data = await generateJSONWithGemini(prompt, instruction);
         if (data) {
+            // Prevent _validateRecursive _id failure on custom items
+            delete data._id;
+            
+            // Hard-filter item types to prevent Foundry crashes
+            const validTypes = ["weapon", "armour", "trapping"];
+            if (!validTypes.includes(data.type)) {
+                data.type = "trapping";
+            }
+            if (data.type === "armour" && data.system) {
+                const validArmourTypes = ["armour", "shield"];
+                if (!validArmourTypes.includes(data.system.type)) {
+                    data.system.type = "armour";
+                }
+            }
+
             const item = await Item.create(data);
             ui.notifications.info(`Created item: ${item.name}`);
             item.sheet.render(true);
