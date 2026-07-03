@@ -48,17 +48,22 @@ async function openAIModifyDialog(actor) {
 }
 
 // 1. Add to the V2 Actor Sheets "Toggle Controls" menu (the 3 vertical dots)
-Hooks.on("getHeaderControlsApplicationV2", (app, buttons) => {
-    // Ensure we are only adding this to actor sheets
-    if (!app.document || !(app.document instanceof Actor)) return;
+function addV2HeaderButton(app, buttons) {
+    // Determine the actor robustly
+    const actor = app.document || app.actor;
+    if (!actor || !(actor instanceof Actor)) return;
     
     // Only GMs should see this
     if (game.user && !game.user.isGM) return;
 
+    // Prevent duplicates if multiple hooks fire
+    if (buttons.some(b => b.action === "aiModify")) return;
+
     // Register the action handler dynamically for this specific app instance
+    if (!app.options.actions) app.options.actions = {};
     app.options.actions["aiModify"] = function() {
-        const actor = this.document || this.actor;
-        if (actor) openAIModifyDialog(actor);
+        const currentActor = this.document || this.actor;
+        if (currentActor) openAIModifyDialog(currentActor);
     };
 
     // Add the button
@@ -67,6 +72,24 @@ Hooks.on("getHeaderControlsApplicationV2", (app, buttons) => {
         icon: "fa-solid fa-magic",
         label: "AI Modify"
     });
+}
+
+// Foundry V12+ ApplicationV2 hooks fire for the exact class name and all parent classes
+const v2Hooks = [
+    "getApplicationHeaderControls",
+    "getHeaderControlsApplicationV2",
+    "getHeaderControlsDocumentSheetV2",
+    "getHeaderControlsActorSheetV2",
+    "getHeaderControlsActorSheet",
+    "getHeaderControlsCharacterSheet",
+    "getHeaderControlsCreatureSheet",
+    "getHeaderControlsGroupSheet",
+    "getHeaderControlsPartySheet",
+    "getHeaderControlsNPCSheet"
+];
+
+v2Hooks.forEach(hookName => {
+    Hooks.on(hookName, addV2HeaderButton);
 });
 
 // 2. Fallback for V1 Sheets just in case any mods use them
