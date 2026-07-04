@@ -10,7 +10,7 @@ export async function callGemini(prompt, systemInstruction = "") {
     const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
     
     const payload = {
-        contents: [{ parts: [{ text: prompt }] }]
+        contents: [{ parts: Array.isArray(prompt) ? prompt : [{ text: prompt }] }]
     };
 
     if (systemInstruction) {
@@ -45,7 +45,12 @@ export async function callGemini(prompt, systemInstruction = "") {
 }
 
 export async function generateJSONWithGemini(prompt, systemInstruction) {
-    const fullPrompt = `${prompt}\n\nPlease output valid JSON only, without markdown code blocks.`;
+    let fullPrompt;
+    if (Array.isArray(prompt)) {
+        fullPrompt = [...prompt, { text: "\n\nPlease output valid JSON only, without markdown code blocks." }];
+    } else {
+        fullPrompt = `${prompt}\n\nPlease output valid JSON only, without markdown code blocks.`;
+    }
     const response = await callGemini(fullPrompt, systemInstruction);
     if (!response) return null;
     
@@ -55,6 +60,28 @@ export async function generateJSONWithGemini(prompt, systemInstruction) {
     } catch (e) {
         console.error("Failed to parse Gemini response as JSON:", response, e);
         ui.notifications.error("Failed to parse generation result. See console for details.");
+        return null;
+    }
+}
+
+export async function urlToBase64(url) {
+    try {
+        const response = await fetch(url);
+        const blob = await response.blob();
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                const base64data = reader.result.split(',')[1];
+                resolve({
+                    mimeType: blob.type,
+                    data: base64data
+                });
+            };
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+        });
+    } catch (e) {
+        console.error("Failed to load image for AI vision:", url, e);
         return null;
     }
 }

@@ -4,6 +4,7 @@
         <a class="item" data-tab="items"><i class="fas fa-sword"></i> {{localize "WHFRPG3E.Tabs.Items"}}</a>
         <a class="item" data-tab="story"><i class="fas fa-book"></i> {{localize "WHFRPG3E.Tabs.Story"}}</a>
         <a class="item" data-tab="quests"><i class="fas fa-scroll"></i> {{localize "WHFRPG3E.Tabs.Quests"}}</a>
+        <a class="item" data-tab="scenes"><i class="fas fa-map"></i> Scenes</a>
     </nav>
 
     <section class="content">
@@ -37,6 +38,14 @@
                 <textarea class="prompt-input" rows="4" placeholder="The Burgomeister wants the party to clear out the sewers..."></textarea>
             </div>
             <button class="generate-btn" data-type="quest"><i class="fas fa-magic"></i> {{localize "WHFRPG3E.Button.Generate"}}</button>
+        </div>
+
+        <div class="tab" data-tab="scenes" data-group="primary">
+            <p>Describe a scene and let AI duplicate and populate the best matching existing scene with walls, doors, and tokens.</p>
+            <div class="form-group">
+                <textarea class="prompt-input" rows="4" placeholder="An eerie underground cavern where a cult is conducting a ritual. Include a closed door at the entrance and a few cultist tokens..."></textarea>
+            </div>
+            <button class="generate-btn" data-type="scene"><i class="fas fa-magic"></i> {{localize "WHFRPG3E.Button.Generate"}}</button>
         </div>
     </section>
 </div>

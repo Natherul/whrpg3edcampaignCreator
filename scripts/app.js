@@ -1,4 +1,4 @@
-import { generateJSONWithGemini, callGemini } from "./api.js";
+import { generateJSONWithGemini, callGemini, urlToBase64 } from "./api.js";
 
 export async function fixActorWithAI(actor, prompt) {
     ui.notifications.info(`AI modifying ${actor.name}... please wait.`);
@@ -118,6 +118,8 @@ export class CampaignCreatorApp extends Application {
                 await this._generateStory(promptInput);
             } else if (type === "quest") {
                 await this._generateQuest(promptInput);
+            } else if (type === "scene") {
+                await this._generateScene(promptInput);
             }
         } finally {
             button.prop("disabled", false);
@@ -337,6 +339,89 @@ Valid rarities: abundant, plentiful, common, rare, exotic.`;
             });
             ui.notifications.info(`Created Quest: ${data.title}`);
             entry.sheet.render(true);
+        }
+    }
+
+    async _generateScene(prompt) {
+        const scenes = game.scenes.contents.filter(s => s.background?.src || s.img);
+        if (scenes.length === 0) {
+            ui.notifications.error("No scenes with background images found.");
+            return;
+        }
+        
+        let parts = [
+            { text: `You are a WFRP 3e GM Assistant. Your task is to select the BEST scene from the available options to match the following prompt:\n\n"${prompt}"\n\nHere are the available scenes:` }
+        ];
+        
+        ui.notifications.info("Preparing images for AI vision...");
+        for (let s of scenes) {
+            const bgSrc = s.background?.src || s.img;
+            if (bgSrc) {
+                // Ensure the URL is absolute or relative to the origin
+                let url = bgSrc;
+                if (!url.startsWith('http')) {
+                    url = window.location.origin + (url.startsWith('/') ? '' : '/') + url;
+                }
+                const b64 = await urlToBase64(url);
+                if (b64) {
+                    parts.push({ text: `Scene Name: ${s.name} (ID: ${s.id})\nDimensions: ${s.width}x${s.height}` });
+                    parts.push({ inlineData: { mimeType: b64.mimeType, data: b64.data } });
+                }
+            }
+        }
+        
+        parts.push({ text: `Analyze the provided scenes and choose the one that best matches the prompt.
+Output exactly one JSON object with the following structure:
+{
+  "selectedSceneId": "The ID of the scene you selected",
+  "newName": "A creative new name for the duplicated scene based on the prompt",
+  "walls": [
+    { "c": [x1, y1, x2, y2] } // coordinates for the walls. Values must be numbers. Try to align with the visual grid of the map.
+  ],
+  "doors": [
+    { "c": [x1, y1, x2, y2] } // doors
+  ],
+  "tokens": [
+    { "name": "Name of token (e.g. Goblin)", "x": x_coord, "y": y_coord }
+  ]
+}
+`});
+
+        ui.notifications.info("Sending scenes to AI... This may take a moment.");
+        const data = await generateJSONWithGemini(parts, "");
+        if (data && data.selectedSceneId) {
+            const existingScene = game.scenes.get(data.selectedSceneId);
+            if (existingScene) {
+                ui.notifications.info(`Duplicating scene: ${existingScene.name}`);
+                const sceneData = existingScene.toObject();
+                delete sceneData._id;
+                sceneData.name = data.newName || `${existingScene.name} (Duplicate)`;
+                
+                const newScene = await Scene.create(sceneData);
+                
+                if (data.walls && data.walls.length > 0) {
+                    await newScene.createEmbeddedDocuments("Wall", data.walls);
+                }
+                if (data.doors && data.doors.length > 0) {
+                    const doorData = data.doors.map(d => ({ ...d, door: 1 }));
+                    await newScene.createEmbeddedDocuments("Wall", doorData);
+                }
+                if (data.tokens && data.tokens.length > 0) {
+                    const tokenData = data.tokens.map(t => ({
+                        name: t.name,
+                        x: t.x,
+                        y: t.y,
+                        actorLink: false,
+                        displayName: 30
+                    }));
+                    await newScene.createEmbeddedDocuments("Token", tokenData);
+                }
+                
+                ui.notifications.info(`Scene ${newScene.name} generated successfully!`);
+                newScene.view();
+            } else {
+                 ui.notifications.error("AI returned an invalid scene ID.");
+            }
         }
     }
 
